@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Validate deposit amount and uploaded file
     if (isset($_FILES['upload']) && isset($_POST['deposit'])) {
-        $uploadDir = 'uploads/';
+        $uploadDir = '../../admin/uploads/';
         
         // Ensure the upload directory exists and is writable
         if (!is_dir($uploadDir)) {
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Error handling for database query
             if ($stmt->execute([$userId, $depositAmount, $uploadFile])) {
-                echo "Deposit submitted successfully. Pending approval.";
+                header("Location: s.php");
             } else {
                 echo "Database error. Please try again.";
             }

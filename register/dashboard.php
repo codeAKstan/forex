@@ -9,10 +9,10 @@ if (!isset($_SESSION['user_id'])) {
 include "db_conn.php";
 
 // Example query to get user's balance (from a "portfolio" table or similar)
-$query = "SELECT balance FROM portfolio WHERE user_id = ?";
+$query = "SELECT balance, message, message_toggle FROM portfolio WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->execute([$_SESSION['user_id']]);
-$balance = $stmt->fetchColumn();  // Fetch user's balance
+$portfolio = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Fetch cryptocurrency data (e.g., from an external API or local database)
 $cryptos = [
@@ -20,8 +20,6 @@ $cryptos = [
     ["name" => "Dogecoin", "price" => 0.099104, "change" => -4.62],
     ["name" => "Ethereum", "price" => 2287.45, "change" => -2.62]
 ];
-
-
 ?>
 
 <!DOCTYPE html>
@@ -32,50 +30,75 @@ $cryptos = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome</title>
     <link rel="stylesheet" href="styles.css">
-	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="shortcut icon" href="image/chainlink.png" type="image/x-icon">
-	<script src="https://kit.fontawesome.com/c1fbfe0463.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/c1fbfe0463.js" crossorigin="anonymous"></script>
     <style>
-      @media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
+        .user-message{
+            background-color: #6a4aab;
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
-    .sidebar {
-        width: 100%;
-        visibility: hidden;
-        height: 0;
-    }
+        }
+        .warning-icon {
+            font-size: 50px;
+            color: #ff5775;
+        }
+        h3 {
+            color: #fff;
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        .message {
+            background-color: #ffffff;
+            color: #444;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
 
-    .main-content {
-        padding: 10px;
-    }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
 
-    .balance-info h2 {
-        font-size: 2em;
-    }
+            .sidebar {
+                width: 100%;
+                visibility: hidden;
+                height: 0;
+            }
 
-    .crypto-cards {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
+            .main-content {
+                padding: 10px;
+            }
 
-    .crypto-card {
-        width: 100%;
-    }
+            .balance-info h2 {
+                font-size: 2em;
+            }
 
-    .balance-actions button {
-        width: 100%;
-        font-size: 1em;
-        padding: 10px;
-    }
+            .crypto-cards {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
 
-    .market-table th, .market-table td {
-        padding: 5px;
-    }
-}
+            .crypto-card {
+                width: 100%;
+            }
 
+            .balance-actions button {
+                width: 100%;
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            .market-table th, .market-table td {
+                padding: 5px;
+            }
+        }
     </style>
 </head>
 
@@ -85,42 +108,55 @@ $cryptos = [
             <h5>Forex Automated system</h5>
             <ul>
                 <li>
-                <a href="dashboard.php">
-					<i class='bx bxs-dashboard' ></i>
-					<span class="text">Home</span>
-				</a>
+                    <a href="dashboard.php">
+                        <i class='bx bxs-dashboard'></i>
+                        <span class="text">Home</span>
+                    </a>
                 </li>
-                <li> <a href="home/trade.php">
-					<i class='bx bxs-copy' ></i>
-					<span class="text">Copy Trade</span>
-				</a></li>
-                <li> <a href="home/deposit.php">
-					<i class='bx bxs-bank' ></i>
-					<span class="text">Asset</span>
-				</a></li>
-                <li> <a href="home/profile.php">
-					<i class='bx bxs-user' ></i>
-					<span class="text">Account</span>
-				</a></li>
-                <li> <a href="home/recent.php">
-					<i class='bx bxs-news' ></i>
-					<span class="text">Recent Activities</span>
-				</a></li>
+                <li>
+                    <a href="home/trade.php">
+                        <i class='bx bxs-copy'></i>
+                        <span class="text">Copy Trade</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="home/deposit.php">
+                        <i class='bx bxs-bank'></i>
+                        <span class="text">Asset</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="home/profile.php">
+                        <i class='bx bxs-user'></i>
+                        <span class="text">Account</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="home/recent.php">
+                        <i class='bx bxs-news'></i>
+                        <span class="text">Recent Activities</span>
+                    </a>
+                </li>
             </ul>
         </nav>
         <div class="main-content">
             <h2>Portfolio</h2>
             <header class="header">
-                <p>Welcome Back, <strong>
-                        <?= $_SESSION['user_name'] ?>
-                    </strong></p>
+                <p>Welcome Back, <strong><?= $_SESSION['user_name'] ?></strong></p>
             </header>
+            
+            <?php if ($portfolio && $portfolio['message_toggle']): ?>
+                <div class="user-message">
+                <div class="warning-icon">&#9888;</div>
+                    <h3>Forex automated system</h3>
+                    <div class="message"><?= htmlspecialchars($portfolio['message']) ?></div>
+                </div>
+            <?php endif; ?>
+
             <section class="balance-section">
                 <div class="balance-info">
                     <p>Current Balance</p>
-                    <h2>US$
-                        <?= number_format($balance, 2) ?>
-                    </h2>
+                    <h2>US$ <?= number_format($portfolio['balance'], 2) ?></h2>
                     <div class="balance-actions">
                         <button onclick='window.location.href="home/deposit.php"'>Deposit</button>
                         <button onclick='window.location.href="home/portfolio.php"'>Portfolio</button>

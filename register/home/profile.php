@@ -7,11 +7,11 @@ if (!isset($_SESSION['user_id'])) {
 
 include "../db_conn.php";
 
-$query = "SELECT balance, earning FROM portfolio WHERE user_id = ?";
+$query = "SELECT balance, profit FROM portfolio WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->execute([$_SESSION['user_id']]);
 $balance = $stmt->fetchColumn();  // Fetch user's balance
-$earning = $stmt->fetchColumn(); 
+$profit = $stmt->fetchColumn(); 
 
 ?>
 
@@ -26,6 +26,10 @@ $earning = $stmt->fetchColumn();
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="shortcut icon" href="../image/chainlink.png" type="image/x-icon">
     <script src="https://kit.fontawesome.com/c1fbfe0463.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@latest/dist/umd/index.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -305,8 +309,8 @@ $earning = $stmt->fetchColumn();
                     <p><strong>Available Balance</strong>: $
                         <?= number_format($balance, 2) ?>
                     </p>
-                    <p><strong>Total Profits</strong>: $0.
-                        <?= number_format($earning, 2) ?>
+                    <p><strong>Total Profits</strong>: $
+                        <?= number_format($profit, 2) ?>
                     </p>
                     <button class="withdraw-btn"><a href="#withdraw"></a>Withdraw</button>
                 </div>
@@ -338,6 +342,7 @@ $earning = $stmt->fetchColumn();
             </form>
             </div>
         </div>
+        <?= include('recent.php') ?>
 
         <div class="footer">
             <div class="footer-icon">

@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $conn->prepare($query);
         $stmt->execute([$userId, $withdrawAmount]);
 
-        echo "Withdrawal submitted successfully. Pending approval.";
+        header("Location: s.php");
     } else {
-        echo "Insufficient balance or invalid amount.";
+        header("Location: f.php");
     }
 }
 ?>
